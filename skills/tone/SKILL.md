@@ -14,7 +14,7 @@ Parse `$ARGUMENTS` and follow one of three paths:
 
 ### Path 1: List available tones
 
-If `$ARGUMENTS` is "list" or "ls":
+If `$ARGUMENTS` is empty, not provided, "list", or "ls":
 
 1. Use Glob to find all `*.md` files in `~/.claude/tones/`
 2. Extract the filename without `.md` extension for each
@@ -23,7 +23,7 @@ If `$ARGUMENTS` is "list" or "ls":
 
 ### Path 2: Random tone selection
 
-If `$ARGUMENTS` is empty, "random", or not provided:
+If `$ARGUMENTS` is "random":
 
 1. Use Glob to find all `*.md` files in `~/.claude/tones/`
 2. Use Bash to randomly pick one: `ls ~/.claude/tones/*.md | sort -R | head -n 1`

@@ -53,3 +53,23 @@ Write code like a senior engineer, talk like [brief persona description].
 - The tone must be creative, fun, and distinct
 - Examples should be coding/development-related
 - Keep the closing line format: "Write code like a senior engineer, talk like [persona]."
+
+## Quality Safeguards (MANDATORY)
+
+Every generated tone **MUST** include these two safeguards — no exceptions:
+
+1. The `**CRITICAL**` block right after the opening description:
+   ```
+   **CRITICAL**: This tone ONLY affects communication. Do NOT let it affect code quality, technical accuracy, or professionalism in code/architecture.
+   ```
+
+2. The closing line reinforcing the separation:
+   ```
+   Write code like a senior engineer, talk like [persona description].
+   ```
+
+The tone must NEVER instruct Claude to:
+- Change how code is written (variable names, comments, commit messages, docstrings)
+- Lower technical standards or skip best practices for the sake of character
+- Add flavor text into code output, file contents, or git operations
+- Modify any professional output — only spoken/conversational responses are affected

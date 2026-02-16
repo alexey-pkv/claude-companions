@@ -34,14 +34,14 @@ When the user asks to install (e.g., "install tones", "set up tones", "configure
 
 ### Platform Detection
 - **macOS/Linux**: Use `make` targets
-- **Windows**: Use PowerShell scripts: `.\install.ps1 -All` or with switches: `-Tones`, `-Hook`, `-ToneSkill`, `-CreateSkill`, `-Tone <name>`
+- **Windows**: Use PowerShell scripts: `.\scripts\windows\install.ps1 -All` or with switches: `-Tones`, `-Hook`, `-ToneSkill`, `-CreateSkill`, `-Tone <name>`
 
 ## Uninstall
 
 - **Everything**: `make uninstall`
 - **Just tones**: `make uninstall-tones`
 - **Specific tone**: `make uninstall-tone TONE=<name>`
-- **Windows**: `.\uninstall.ps1 -All` or with individual switches
+- **Windows**: `.\scripts\windows\uninstall.ps1 -All` or with individual switches
 
 ## Update
 

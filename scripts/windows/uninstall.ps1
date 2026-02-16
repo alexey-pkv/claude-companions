@@ -8,7 +8,7 @@ param(
     [string]$Tone
 )
 
-$RepoDir = $PSScriptRoot
+$RepoDir = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $RepoTones = Join-Path $RepoDir "tones"
 $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
 $ClaudeTones = Join-Path $ClaudeDir "tones"

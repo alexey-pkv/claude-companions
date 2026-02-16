@@ -8,7 +8,7 @@ param(
     [string]$Tone
 )
 
-$RepoDir = $PSScriptRoot
+$RepoDir = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $RepoTones = Join-Path $RepoDir "tones"
 $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
 $ClaudeTones = Join-Path $ClaudeDir "tones"
@@ -47,7 +47,7 @@ function Install-AllTones {
 
 function Install-Hook {
     New-Item -ItemType Directory -Path $ClaudeScripts -Force | Out-Null
-    $ScriptSource = Join-Path $RepoDir "scripts\rotate-tone.ps1"
+    $ScriptSource = Join-Path $RepoDir "scripts\windows\rotate-tone.ps1"
     $ScriptTarget = Join-Path $ClaudeScripts "rotate-tone.ps1"
     if (Test-Path $ScriptTarget) { Remove-Item $ScriptTarget -Force }
     try {
