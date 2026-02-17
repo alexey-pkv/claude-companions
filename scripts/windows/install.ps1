@@ -32,7 +32,7 @@ function Install-SingleTone {
         Write-Host "Installed tone: $Name (symlink)"
     } catch {
         Copy-Item $Source $Target -Force
-        Write-Host "Installed tone: $Name (copy — run as admin for symlinks)"
+        Write-Host "Installed tone: $Name (copy - run as admin for symlinks)"
     }
 }
 
@@ -111,7 +111,7 @@ function Install-Skill {
         Write-Host "Installed skill: $Name (symlink)"
     } catch {
         Copy-Item $Source $Target -Force
-        Write-Host "Installed skill: $Name (copy — run as admin for symlinks)"
+        Write-Host "Installed skill: $Name (copy - run as admin for symlinks)"
     }
 }
 
