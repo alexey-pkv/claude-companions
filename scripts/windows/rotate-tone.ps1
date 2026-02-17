@@ -17,7 +17,7 @@ if ($ToneFiles.Count -eq 0) {
 $Selected = $ToneFiles | Get-Random
 $ToneName = $Selected.BaseName
 
-# Output the tone content
+# Output the tone content with explicit UTF8 encoding for special characters
 Write-Output "🎭 Tone for this session: $ToneName"
 Write-Output ""
-Get-Content $Selected.FullName
+Get-Content $Selected.FullName -Encoding UTF8

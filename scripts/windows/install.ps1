@@ -16,6 +16,18 @@ $ClaudeSkills = Join-Path $ClaudeDir "skills"
 $ClaudeScripts = Join-Path $ClaudeDir "scripts"
 $SettingsFile = Join-Path $ClaudeDir "settings.json"
 
+function Resolve-SymlinkTarget {
+    param([string]$Path)
+    $item = Get-Item $Path -Force
+    if ($item.LinkType -eq "SymbolicLink") {
+        # .Target can be a string or string[] depending on PS version
+        $target = $item.Target
+        if ($target -is [array]) { $target = $target[0] }
+        return $target
+    }
+    return $null
+}
+
 function Install-SingleTone {
     param([string]$Name)
     $Source = Join-Path $RepoTones "$Name.md"
@@ -25,10 +37,9 @@ function Install-SingleTone {
     }
     New-Item -ItemType Directory -Path $ClaudeTones -Force | Out-Null
     $Target = Join-Path $ClaudeTones "$Name.md"
-    # Windows: use symbolic link (requires appropriate permissions) or copy
     if (Test-Path $Target) { Remove-Item $Target -Force }
     try {
-        New-Item -ItemType SymbolicLink -Path $Target -Target $Source -Force | Out-Null
+        New-Item -ItemType SymbolicLink -Path $Target -Target $Source -Force -ErrorAction Stop | Out-Null
         Write-Host "Installed tone: $Name (symlink)"
     } catch {
         Copy-Item $Source $Target -Force
@@ -51,63 +62,85 @@ function Install-Hook {
     $ScriptTarget = Join-Path $ClaudeScripts "rotate-tone.ps1"
     if (Test-Path $ScriptTarget) { Remove-Item $ScriptTarget -Force }
     try {
-        New-Item -ItemType SymbolicLink -Path $ScriptTarget -Target $ScriptSource -Force | Out-Null
+        New-Item -ItemType SymbolicLink -Path $ScriptTarget -Target $ScriptSource -Force -ErrorAction Stop | Out-Null
     } catch {
         Copy-Item $ScriptSource $ScriptTarget -Force
     }
 
-    # Update settings.json
-    $HookCommand = "powershell -ExecutionPolicy Bypass -File `"$env:USERPROFILE\.claude\scripts\rotate-tone.ps1`""
-    $HookEntry = @{
-        hooks = @(
-            @{
-                type = "command"
-                command = $HookCommand
-            }
-        )
-    }
+    # Build the hook command
+    $RotateScript = Join-Path $env:USERPROFILE ".claude\scripts\rotate-tone.ps1"
+    $HookCommand = "powershell -ExecutionPolicy Bypass -File `"$RotateScript`""
 
+    # Read or initialize settings
     if (Test-Path $SettingsFile) {
-        $Settings = Get-Content $SettingsFile -Raw | ConvertFrom-Json -AsHashtable
+        try {
+            $SettingsJson = Get-Content $SettingsFile -Raw -Encoding UTF8
+            $Settings = $SettingsJson | ConvertFrom-Json
+        } catch {
+            Write-Warning "Could not parse settings.json, creating fresh"
+            $Settings = [PSCustomObject]@{}
+        }
     } else {
-        $Settings = @{}
+        New-Item -ItemType Directory -Path $ClaudeDir -Force | Out-Null
+        $Settings = [PSCustomObject]@{}
     }
 
-    if (-not $Settings.ContainsKey("hooks")) {
-        $Settings["hooks"] = @{}
+    # Ensure hooks.SessionStart exists
+    if (-not (Get-Member -InputObject $Settings -Name "hooks" -MemberType NoteProperty)) {
+        $Settings | Add-Member -NotePropertyName "hooks" -NotePropertyValue ([PSCustomObject]@{})
     }
-    if (-not $Settings["hooks"].ContainsKey("SessionStart")) {
-        $Settings["hooks"]["SessionStart"] = @()
+    if (-not (Get-Member -InputObject $Settings.hooks -Name "SessionStart" -MemberType NoteProperty)) {
+        $Settings.hooks | Add-Member -NotePropertyName "SessionStart" -NotePropertyValue @()
     }
 
     # Check if hook already exists
     $Exists = $false
-    foreach ($Entry in $Settings["hooks"]["SessionStart"]) {
+    foreach ($Entry in $Settings.hooks.SessionStart) {
+        if (-not (Get-Member -InputObject $Entry -Name "hooks" -MemberType NoteProperty)) { continue }
         foreach ($H in $Entry.hooks) {
+            if (-not (Get-Member -InputObject $H -Name "command" -MemberType NoteProperty)) { continue }
             if ($H.command -like "*rotate-tone*") {
                 $Exists = $true
                 break
             }
         }
+        if ($Exists) { break }
     }
 
     if (-not $Exists) {
-        $Settings["hooks"]["SessionStart"] += $HookEntry
+        # Build the new hook entry as PSCustomObject for reliable JSON serialization
+        $NewHook = [PSCustomObject]@{
+            type = "command"
+            command = $HookCommand
+        }
+        $NewEntry = [PSCustomObject]@{
+            hooks = @($NewHook)
+        }
+
+        # Append to SessionStart array
+        $CurrentEntries = @($Settings.hooks.SessionStart)
+        $CurrentEntries += $NewEntry
+        $Settings.hooks.SessionStart = $CurrentEntries
     }
 
-    $Settings | ConvertTo-Json -Depth 10 | Set-Content $SettingsFile -Encoding UTF8
+    # Write settings with sufficient depth and UTF8 encoding
+    $Settings | ConvertTo-Json -Depth 20 | Set-Content $SettingsFile -Encoding UTF8 -NoNewline
     Write-Host "Installed session-start hook"
 }
 
 function Install-Skill {
     param([string]$Name, [string]$SubDir)
     $Source = Join-Path $RepoDir "skills\$SubDir\SKILL.md"
+    if (-not (Test-Path $Source)) {
+        Write-Error "Skill source not found: $Source"
+        return
+    }
     $TargetDir = Join-Path $ClaudeSkills $SubDir
     New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
     $Target = Join-Path $TargetDir "SKILL.md"
     if (Test-Path $Target) { Remove-Item $Target -Force }
     try {
-        New-Item -ItemType SymbolicLink -Path $Target -Target $Source -Force | Out-Null
+        New-Item -ItemType SymbolicLink -Path $Target -Target $Source -Force -ErrorAction Stop | Out-Null
         Write-Host "Installed skill: $Name (symlink)"
     } catch {
         Copy-Item $Source $Target -Force
@@ -146,11 +179,11 @@ if ($CreateSkill) {
 }
 
 if (-not ($All -or $Tone -or $Tones -or $Hook -or $ToneSkill -or $CreateSkill)) {
-    Write-Host "Usage: .\install.ps1 [-All] [-Tones] [-Hook] [-ToneSkill] [-CreateSkill] [-Tone <name>]"
+    Write-Host "Usage: .\install.ps1 [-All] [-Tones] [-Hook] [-ToneSkill] [-CreateSkill] [-Tone <n>]"
     Write-Host ""
     Write-Host "  -All          Install everything"
     Write-Host "  -Tones        Install all predefined tones"
-    Write-Host "  -Tone <name>  Install a specific tone"
+    Write-Host "  -Tone <n>  Install a specific tone"
     Write-Host "  -Hook         Install session-start random tone hook"
     Write-Host "  -ToneSkill    Install /tone skill"
     Write-Host "  -CreateSkill  Install /create-tone skill"
