@@ -4,7 +4,7 @@ SCRIPTS := $(CURDIR)/scripts/unix
 
 .PHONY: help install-tone uninstall-tone install-tones uninstall-tones list \
         install-hook uninstall-hook install-tone-skill install-create-skill \
-        install-all update uninstall status
+        install-all uninstall status
 
 help:
 	@echo "claude-tones - Manage Claude Code personality tones"
@@ -22,7 +22,6 @@ help:
 	@echo "  install-tone-skill    Install the /tone skill"
 	@echo "  install-create-skill  Install the /create-tone skill"
 	@echo "  install-all           Install tones, hook, and skills"
-	@echo "  update                Pull latest and show update report"
 	@echo "  uninstall             Remove everything installed by this repo"
 	@echo "  status                Show current installation status"
 	@echo "  help                  Show this help message"
@@ -62,9 +61,6 @@ install-create-skill:
 
 install-all: install-tones install-hook install-tone-skill install-create-skill
 	@echo "All components installed"
-
-update:
-	@$(SCRIPTS)/update.sh
 
 uninstall: uninstall-tones uninstall-hook
 	@$(SCRIPTS)/uninstall-skill.sh "/tone" "tone"

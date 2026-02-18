@@ -11,5 +11,5 @@ if [ -z "$name" ] || [ -z "$subdir" ]; then
 fi
 
 mkdir -p "$CLAUDE_SKILLS/$subdir"
-ln -sf "$REPO_DIR/skills/$subdir/SKILL.md" "$CLAUDE_SKILLS/$subdir/SKILL.md"
+cp -f "$REPO_DIR/skills/$subdir/SKILL.md" "$CLAUDE_SKILLS/$subdir/SKILL.md"
 echo "Installed $name skill"

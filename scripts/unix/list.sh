@@ -30,13 +30,12 @@ for f in "$REPO_TONES"/*.md; do
     [ -f "$f" ] || continue
     name=$(basename "$f" .md)
     seen="$seen $name"
-    if [ -L "$CLAUDE_TONES/$name.md" ]; then
-        target=$(readlink "$CLAUDE_TONES/$name.md")
-        if [ "$target" = "$f" ]; then
+    if [ -f "$CLAUDE_TONES/$name.md" ]; then
+        if cmp -s "$f" "$CLAUDE_TONES/$name.md"; then
             printf "%-${col}s %-12s %s\n" "$name" "installed" "$f"
             installed=$((installed + 1))
         else
-            printf "%-${col}s %-12s %s\n" "$name" "modified" "$target"
+            printf "%-${col}s %-12s %s\n" "$name" "modified" "$CLAUDE_TONES/$name.md"
             modified=$((modified + 1))
         fi
     else
@@ -54,19 +53,8 @@ if [ -d "$CLAUDE_TONES" ]; then
             if [ "$s" = "$name" ]; then is_seen=1; break; fi
         done
         if [ "$is_seen" = "0" ]; then
-            if [ -L "$f" ]; then
-                target=$(readlink "$f")
-                case "$target" in
-                    "$REPO_TONES"/*) ;;
-                    *)
-                        printf "%-${col}s %-12s %s\n" "$name" "local" "$target"
-                        local_count=$((local_count + 1))
-                        ;;
-                esac
-            else
-                printf "%-${col}s %-12s %s\n" "$name" "local" "$CLAUDE_TONES/$name.md"
-                local_count=$((local_count + 1))
-            fi
+            printf "%-${col}s %-12s %s\n" "$name" "local" "$CLAUDE_TONES/$name.md"
+            local_count=$((local_count + 1))
         fi
     done
 fi

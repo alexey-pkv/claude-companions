@@ -16,29 +16,30 @@ Parse `$ARGUMENTS` and follow one of three paths:
 
 If `$ARGUMENTS` is empty, not provided, "list", or "ls":
 
-1. Use Glob to find all `*.md` files in `~/.claude/tones/`
-2. Extract the filename without `.md` extension for each
-3. Display as a formatted list, sorted alphabetically
-4. Do NOT apply any tone — just show the list
+1. Use Bash: `ls ~/.claude/tones/*.md 2>/dev/null | xargs -n1 basename | sed 's/\.md$//' | sort`
+2. Display the results as a formatted list
+3. Do NOT apply any tone — just show the list
 
 ### Path 2: Random tone selection
 
 If `$ARGUMENTS` is "random":
 
-1. Use Glob to find all `*.md` files in `~/.claude/tones/`
-2. Use Bash to randomly pick one: `ls ~/.claude/tones/*.md | sort -R | head -n 1`
-3. Read the selected tone file
-4. Confirm to the user which tone was selected
-5. Adopt the tone's communication style for the rest of the session
+1. Use Bash: `~/.claude/scripts/rotate-tone.sh`
+2. Adopt the output as the tone for the rest of the session
 
 ### Path 3: Specific tone
 
 If `$ARGUMENTS` is a tone name (e.g., "space-marine", "gordon-ramsay"):
 
 1. Read `~/.claude/tones/$ARGUMENTS.md`
-2. If the file does not exist, inform the user and list available tones
-3. If found, confirm to the user which tone was loaded
-4. Adopt the tone's communication style for the rest of the session
+2. If found, confirm to the user which tone was loaded
+3. Adopt the tone's communication style for the rest of the session
+
+**If the tone is not found:**
+
+1. Use Bash to list available tones: `ls ~/.claude/tones/*.md 2>/dev/null | xargs -n1 basename | sed 's/\.md$//' | sort`
+2. Check if any available tone name is similar to what the user typed (e.g., "ramsay" → "gordon-ramsay", "marine" → "space-marine"). If there's a likely match, suggest it: "Did you mean `<tone-name>`?"
+3. If no close match, show the available tones list and suggest: "You can create a custom tone with `/create-tone $ARGUMENTS`"
 
 ## After Loading a Tone
 

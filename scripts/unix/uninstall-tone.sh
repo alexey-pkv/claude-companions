@@ -4,40 +4,21 @@ source "$(dirname "$0")/common.sh"
 
 uninstall_single() {
     local name="$1"
-    if [ -L "$CLAUDE_TONES/$name.md" ]; then
-        target=$(readlink "$CLAUDE_TONES/$name.md")
-        case "$target" in
-            "$REPO_TONES"/*)
-                rm "$CLAUDE_TONES/$name.md"
-                echo "Uninstalled tone: $name"
-                ;;
-            *)
-                echo "Skipped: $name is not managed by this repo"
-                ;;
-        esac
+    if [ -f "$CLAUDE_TONES/$name.md" ]; then
+        rm "$CLAUDE_TONES/$name.md"
+        echo "Uninstalled tone: $name"
     else
-        echo "Tone '$name' is not installed as a symlink"
+        echo "Tone '$name' is not installed"
     fi
 }
 
 uninstall_all() {
-    count=0
     if [ -d "$CLAUDE_TONES" ]; then
-        for f in "$CLAUDE_TONES"/*.md; do
-            [ -f "$f" ] || continue
-            if [ -L "$f" ]; then
-                target=$(readlink "$f")
-                case "$target" in
-                    "$REPO_TONES"/*)
-                        rm "$f"
-                        echo "  Removed: $(basename "$f" .md)"
-                        count=$((count + 1))
-                        ;;
-                esac
-            fi
-        done
+        rm -rf "$CLAUDE_TONES"
+        echo "Removed all tones"
+    else
+        echo "No tones installed"
     fi
-    echo "Uninstalled $count tone(s)"
 }
 
 if [ "$1" = "--all" ]; then

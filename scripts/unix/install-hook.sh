@@ -3,7 +3,7 @@ set -e
 source "$(dirname "$0")/common.sh"
 
 mkdir -p "$CLAUDE_SCRIPTS"
-ln -sf "$REPO_DIR/scripts/unix/rotate-tone.sh" "$CLAUDE_SCRIPTS/rotate-tone.sh"
+cp -f "$REPO_DIR/scripts/unix/rotate-tone.sh" "$CLAUDE_SCRIPTS/rotate-tone.sh"
 chmod +x "$CLAUDE_SCRIPTS/rotate-tone.sh"
 
 mkdir -p "$CLAUDE_DIR"

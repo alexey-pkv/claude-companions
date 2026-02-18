@@ -45,7 +45,7 @@ When the user asks to install (e.g., "install tones", "set up tones", "configure
 
 ## Update
 
-- `make update` — pulls latest, shows what's new/changed, suggests installing new tones
+- `git pull && make install-all` — pulls latest and re-copies all files
 
 ## Status
 

@@ -10,15 +10,7 @@ if [ -f "$SETTINGS" ]; then
     echo "Removed SessionStart hook from settings"
 fi
 
-if [ -L "$CLAUDE_SCRIPTS/rotate-tone.sh" ]; then
-    target=$(readlink "$CLAUDE_SCRIPTS/rotate-tone.sh")
-    case "$target" in
-        "$REPO_DIR"/*)
-            rm "$CLAUDE_SCRIPTS/rotate-tone.sh"
-            echo "Removed rotate-tone.sh symlink"
-            ;;
-        *)
-            echo "Skipped: rotate-tone.sh is not managed by this repo"
-            ;;
-    esac
+if [ -f "$CLAUDE_SCRIPTS/rotate-tone.sh" ]; then
+    rm "$CLAUDE_SCRIPTS/rotate-tone.sh"
+    echo "Removed rotate-tone.sh"
 fi

@@ -16,18 +16,6 @@ $ClaudeSkills = Join-Path $ClaudeDir "skills"
 $ClaudeScripts = Join-Path $ClaudeDir "scripts"
 $SettingsFile = Join-Path $ClaudeDir "settings.json"
 
-function Resolve-SymlinkTarget {
-    param([string]$Path)
-    $item = Get-Item $Path -Force
-    if ($item.LinkType -eq "SymbolicLink") {
-        # .Target can be a string or string[] depending on PS version
-        $target = $item.Target
-        if ($target -is [array]) { $target = $target[0] }
-        return $target
-    }
-    return $null
-}
-
 function Install-SingleTone {
     param([string]$Name)
     $Source = Join-Path $RepoTones "$Name.md"
@@ -37,14 +25,8 @@ function Install-SingleTone {
     }
     New-Item -ItemType Directory -Path $ClaudeTones -Force | Out-Null
     $Target = Join-Path $ClaudeTones "$Name.md"
-    if (Test-Path $Target) { Remove-Item $Target -Force }
-    try {
-        New-Item -ItemType SymbolicLink -Path $Target -Target $Source -Force -ErrorAction Stop | Out-Null
-        Write-Host "Installed tone: $Name (symlink)"
-    } catch {
-        Copy-Item $Source $Target -Force
-        Write-Host "Installed tone: $Name (copy - run as admin for symlinks)"
-    }
+    Copy-Item $Source $Target -Force
+    Write-Host "Installed tone: $Name"
 }
 
 function Install-AllTones {
@@ -60,12 +42,7 @@ function Install-Hook {
     New-Item -ItemType Directory -Path $ClaudeScripts -Force | Out-Null
     $ScriptSource = Join-Path $RepoDir "scripts\windows\rotate-tone.ps1"
     $ScriptTarget = Join-Path $ClaudeScripts "rotate-tone.ps1"
-    if (Test-Path $ScriptTarget) { Remove-Item $ScriptTarget -Force }
-    try {
-        New-Item -ItemType SymbolicLink -Path $ScriptTarget -Target $ScriptSource -Force -ErrorAction Stop | Out-Null
-    } catch {
-        Copy-Item $ScriptSource $ScriptTarget -Force
-    }
+    Copy-Item $ScriptSource $ScriptTarget -Force
 
     # Build the hook command
     $RotateScript = Join-Path $env:USERPROFILE ".claude\scripts\rotate-tone.ps1"
@@ -108,7 +85,6 @@ function Install-Hook {
     }
 
     if (-not $Exists) {
-        # Build the new hook entry as PSCustomObject for reliable JSON serialization
         $NewHook = [PSCustomObject]@{
             type = "command"
             command = $HookCommand
@@ -117,13 +93,11 @@ function Install-Hook {
             hooks = @($NewHook)
         }
 
-        # Append to SessionStart array
         $CurrentEntries = @($Settings.hooks.SessionStart)
         $CurrentEntries += $NewEntry
         $Settings.hooks.SessionStart = $CurrentEntries
     }
 
-    # Write settings with sufficient depth and UTF8 encoding
     $Settings | ConvertTo-Json -Depth 20 | Set-Content $SettingsFile -Encoding UTF8 -NoNewline
     Write-Host "Installed session-start hook"
 }
@@ -138,14 +112,8 @@ function Install-Skill {
     $TargetDir = Join-Path $ClaudeSkills $SubDir
     New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
     $Target = Join-Path $TargetDir "SKILL.md"
-    if (Test-Path $Target) { Remove-Item $Target -Force }
-    try {
-        New-Item -ItemType SymbolicLink -Path $Target -Target $Source -Force -ErrorAction Stop | Out-Null
-        Write-Host "Installed skill: $Name (symlink)"
-    } catch {
-        Copy-Item $Source $Target -Force
-        Write-Host "Installed skill: $Name (copy - run as admin for symlinks)"
-    }
+    Copy-Item $Source $Target -Force
+    Write-Host "Installed skill: $Name"
 }
 
 # Execute based on switches

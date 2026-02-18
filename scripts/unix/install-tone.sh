@@ -9,7 +9,7 @@ install_single() {
         exit 1
     fi
     mkdir -p "$CLAUDE_TONES"
-    ln -sf "$REPO_TONES/$name.md" "$CLAUDE_TONES/$name.md"
+    cp -f "$REPO_TONES/$name.md" "$CLAUDE_TONES/$name.md"
     echo "  Installed: $name"
 }
 
@@ -19,7 +19,7 @@ install_all() {
     for f in "$REPO_TONES"/*.md; do
         [ -f "$f" ] || continue
         name=$(basename "$f" .md)
-        ln -sf "$f" "$CLAUDE_TONES/$name.md"
+        cp -f "$f" "$CLAUDE_TONES/$name.md"
         echo "  Installed: $name"
         count=$((count + 1))
     done

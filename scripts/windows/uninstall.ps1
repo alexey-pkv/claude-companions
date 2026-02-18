@@ -8,66 +8,33 @@ param(
     [string]$Tone
 )
 
-$RepoDir = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
-$RepoTones = Join-Path $RepoDir "tones"
 $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
 $ClaudeTones = Join-Path $ClaudeDir "tones"
 $ClaudeSkills = Join-Path $ClaudeDir "skills"
 $ClaudeScripts = Join-Path $ClaudeDir "scripts"
 $SettingsFile = Join-Path $ClaudeDir "settings.json"
 
-function Resolve-SymlinkTarget {
-    param([string]$Path)
-    $item = Get-Item $Path -Force
-    if ($item.LinkType -eq "SymbolicLink") {
-        $target = $item.Target
-        if ($target -is [array]) { $target = $target[0] }
-        return $target
-    }
-    return $null
-}
-
 function Uninstall-SingleTone {
     param([string]$Name)
     $Target = Join-Path $ClaudeTones "$Name.md"
-    if (-not (Test-Path $Target)) {
-        Write-Host "Tone '$Name' is not installed"
-        return
-    }
-    $LinkTarget = Resolve-SymlinkTarget -Path $Target
-    $RepoSource = Join-Path $RepoTones "$Name.md"
-    if ($LinkTarget -and ($LinkTarget -eq $RepoSource)) {
+    if (Test-Path $Target) {
         Remove-Item $Target -Force
         Write-Host "Uninstalled tone: $Name"
-    } elseif ($LinkTarget) {
-        Write-Warning "Tone '$Name' symlink points elsewhere ($LinkTarget). Skipping."
     } else {
-        Write-Warning "Tone '$Name' is a local file, not a repo symlink. Skipping."
+        Write-Host "Tone '$Name' is not installed"
     }
 }
 
 function Uninstall-AllTones {
-    if (-not (Test-Path $ClaudeTones)) { return }
-    $Count = 0
-    Get-ChildItem -Path $ClaudeTones -Filter "*.md" -File | ForEach-Object {
-        $LinkTarget = Resolve-SymlinkTarget -Path $_.FullName
-        if ($LinkTarget -and ($LinkTarget -like "$RepoTones*")) {
-            Remove-Item $_.FullName -Force
-            Write-Host "  Removed: $($_.BaseName)"
-            $Count++
-        }
+    if (Test-Path $ClaudeTones) {
+        Remove-Item $ClaudeTones -Recurse -Force
+        Write-Host "Removed all tones"
+    } else {
+        Write-Host "No tones installed"
     }
-    Write-Host "Uninstalled $Count tones"
 }
 
 function Uninstall-Hook {
-    # Remove rotate script symlink
-    $ScriptPath = Join-Path $ClaudeScripts "rotate-tone.ps1"
-    if (Test-Path $ScriptPath) {
-        Remove-Item $ScriptPath -Force
-        Write-Host "Removed rotate-tone script"
-    }
-
     # Remove hook from settings.json
     if (Test-Path $SettingsFile) {
         try {
@@ -103,7 +70,6 @@ function Uninstall-Hook {
                 $Settings.hooks.SessionStart = $Filtered
             }
 
-            # Clean up empty hooks object
             if (($Settings.hooks.PSObject.Properties | Measure-Object).Count -eq 0) {
                 $Settings.PSObject.Properties.Remove("hooks")
             }
@@ -111,29 +77,24 @@ function Uninstall-Hook {
             $Settings | ConvertTo-Json -Depth 20 | Set-Content $SettingsFile -Encoding UTF8 -NoNewline
         }
     }
-    Write-Host "Removed session-start hook"
+    Write-Host "Removed SessionStart hook from settings"
+
+    # Remove rotate script
+    $ScriptPath = Join-Path $ClaudeScripts "rotate-tone.ps1"
+    if (Test-Path $ScriptPath) {
+        Remove-Item $ScriptPath -Force
+        Write-Host "Removed rotate-tone script"
+    }
 }
 
 function Uninstall-Skill {
     param([string]$Name, [string]$SubDir)
     $SkillDir = Join-Path $ClaudeSkills $SubDir
-    $SkillFile = Join-Path $SkillDir "SKILL.md"
-    if (-not (Test-Path $SkillFile)) {
-        Write-Host "Skill '$Name' is not installed"
-        return
-    }
-    $LinkTarget = Resolve-SymlinkTarget -Path $SkillFile
-    $RepoSource = Join-Path $RepoDir "skills\$SubDir\SKILL.md"
-    if ($LinkTarget -and ($LinkTarget -eq $RepoSource)) {
-        Remove-Item $SkillFile -Force
-        if ((Get-ChildItem $SkillDir -Force | Measure-Object).Count -eq 0) {
-            Remove-Item $SkillDir -Force
-        }
+    if (Test-Path $SkillDir) {
+        Remove-Item $SkillDir -Recurse -Force
         Write-Host "Uninstalled skill: $Name"
-    } elseif ($LinkTarget) {
-        Write-Warning "Skill '$Name' symlink points elsewhere. Skipping."
     } else {
-        Write-Warning "Skill '$Name' is not a repo symlink. Skipping."
+        Write-Host "Skill '$Name' is not installed"
     }
 }
 
@@ -156,7 +117,7 @@ if (-not ($All -or $Tone -or $Tones -or $Hook -or $ToneSkill -or $CreateSkill)) 
     Write-Host "Usage: .\uninstall.ps1 [-All] [-Tones] [-Hook] [-ToneSkill] [-CreateSkill] [-Tone <n>]"
     Write-Host ""
     Write-Host "  -All          Uninstall everything"
-    Write-Host "  -Tones        Uninstall all repo tones (keeps local tones)"
+    Write-Host "  -Tones        Uninstall all tones"
     Write-Host "  -Tone <n>  Uninstall a specific tone"
     Write-Host "  -Hook         Remove session-start hook"
     Write-Host "  -ToneSkill    Remove /tone skill"

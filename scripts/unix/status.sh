@@ -5,22 +5,24 @@ source "$(dirname "$0")/common.sh"
 echo "claude-tones status"
 echo "==================="
 
-installed=0; local_count=0
+installed=0; modified=0; local_count=0
 if [ -d "$CLAUDE_TONES" ]; then
     for f in "$CLAUDE_TONES"/*.md; do
         [ -f "$f" ] || continue
-        if [ -L "$f" ]; then
-            target=$(readlink "$f")
-            case "$target" in
-                "$REPO_TONES"/*) installed=$((installed + 1)) ;;
-                *) local_count=$((local_count + 1)) ;;
-            esac
+        name=$(basename "$f" .md)
+        if [ -f "$REPO_TONES/$name.md" ]; then
+            if cmp -s "$f" "$REPO_TONES/$name.md"; then
+                installed=$((installed + 1))
+            else
+                modified=$((modified + 1))
+            fi
         else
             local_count=$((local_count + 1))
         fi
     done
 fi
 echo "Tones installed: $installed"
+echo "Tones modified:  $modified"
 echo "Tones local:     $local_count"
 
 if [ -f "$SETTINGS" ]; then
@@ -38,22 +40,14 @@ else
     echo "Hook:            not installed"
 fi
 
-if [ -L "$CLAUDE_SKILLS/tone/SKILL.md" ]; then
-    target=$(readlink "$CLAUDE_SKILLS/tone/SKILL.md")
-    case "$target" in
-        "$REPO_DIR"/*) echo "/tone skill:     installed" ;;
-        *) echo "/tone skill:     not installed" ;;
-    esac
+if [ -f "$CLAUDE_SKILLS/tone/SKILL.md" ]; then
+    echo "/tone skill:     installed"
 else
     echo "/tone skill:     not installed"
 fi
 
-if [ -L "$CLAUDE_SKILLS/create-tone/SKILL.md" ]; then
-    target=$(readlink "$CLAUDE_SKILLS/create-tone/SKILL.md")
-    case "$target" in
-        "$REPO_DIR"/*) echo "/create-tone skill: installed" ;;
-        *) echo "/create-tone skill: not installed" ;;
-    esac
+if [ -f "$CLAUDE_SKILLS/create-tone/SKILL.md" ]; then
+    echo "/create-tone skill: installed"
 else
     echo "/create-tone skill: not installed"
 fi

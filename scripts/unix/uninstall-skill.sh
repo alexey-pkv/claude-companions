@@ -10,12 +10,9 @@ if [ -z "$name" ] || [ -z "$subdir" ]; then
     exit 1
 fi
 
-if [ -L "$CLAUDE_SKILLS/$subdir/SKILL.md" ]; then
-    target=$(readlink "$CLAUDE_SKILLS/$subdir/SKILL.md")
-    case "$target" in
-        "$REPO_DIR"/*)
-            rm "$CLAUDE_SKILLS/$subdir/SKILL.md"
-            echo "Removed $name skill"
-            ;;
-    esac
+if [ -f "$CLAUDE_SKILLS/$subdir/SKILL.md" ]; then
+    rm -rf "$CLAUDE_SKILLS/$subdir"
+    echo "Removed $name skill"
+else
+    echo "Skill $name is not installed"
 fi

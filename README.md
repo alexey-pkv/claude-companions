@@ -11,9 +11,9 @@ Do you need someone to tell you the honest truth: **your code is sh\*t** — but
 ## Quick Start
 
 ```bash
-git clone https://github.com/alexey-pkv/claude-companions.git claude-tones
-cd claude-tones
-claude "Install everything"
+git clone https://github.com/alexey-pkv/claude-companions.git claude-companions
+cd claude-companions
+claude "Install everything!"
 ```
 
 That's it. Claude reads the `CLAUDE.md` in this repo and knows how to install everything.
@@ -26,7 +26,6 @@ The recommended way to manage tones is to just talk to Claude from this director
 claude "Install all tones"
 claude "Install just gordon-ramsay and shakespeare"
 claude "Remove the hook, I want to pick tones manually"
-claude "Update tones"
 claude "Create a new tone called pirate-captain"
 ```
 
@@ -34,7 +33,7 @@ No need to memorize commands — just tell Claude what you want.
 
 ## Make Commands
 
-If you prefer running commands directly, like a peasant:
+If you prefer running commands directly, (like a peasant):
 
 ### Install
 
@@ -49,16 +48,18 @@ If you prefer running commands directly, like a peasant:
 
 **Windows (PowerShell):**
 
-| Command                                             | Description                  |
-|-----------------------------------------------------|------------------------------|
-| `.\scripts\windows\install.ps1 -All`                | Install everything           |
-| `.\scripts\windows\install.ps1 -Tones`              | Install all tones            |
-| `.\scripts\windows\install.ps1 -Tone gordon-ramsay` | Install a single tone        |
-| `.\scripts\windows\install.ps1 -Hook`               | Install session-start hook   |
-| `.\scripts\windows\install.ps1 -ToneSkill`          | Install `/tone` skill        |
-| `.\scripts\windows\install.ps1 -CreateSkill`        | Install `/create-tone` skill |
+```powershell
+.\scripts\windows\install.ps1 [-All | -Tones | -Tone <name> | -Hook | -ToneSkill | -CreateSkill]
+```
 
-> Note: Symlinks on Windows require running PowerShell as Administrator. If not elevated, files are copied instead.
+| Flag                  | Description                  |
+|-----------------------|------------------------------|
+| `-All`                | Install everything           |
+| `-Tones`              | Install all tones            |
+| `-Tone <name>`        | Install a single tone        |
+| `-Hook`               | Install session-start hook   |
+| `-ToneSkill`          | Install `/tone` skill        |
+| `-CreateSkill`        | Install `/create-tone` skill |
 
 ### Uninstall
 
@@ -71,12 +72,16 @@ If you prefer running commands directly, like a peasant:
 
 **Windows (PowerShell):**
 
-| Command                                               | Description               |
-|-------------------------------------------------------|---------------------------|
-| `.\scripts\windows\uninstall.ps1 -All`                | Remove everything         |
-| `.\scripts\windows\uninstall.ps1 -Tones`              | Remove all repo tones     |
-| `.\scripts\windows\uninstall.ps1 -Tone gordon-ramsay` | Remove a single tone      |
-| `.\scripts\windows\uninstall.ps1 -Hook`               | Remove session-start hook |
+```powershell
+.\scripts\windows\uninstall.ps1 [-All | -Tones | -Tone <name> | -Hook]
+```
+
+| Flag           | Description               |
+|----------------|---------------------------|
+| `-All`         | Remove everything         |
+| `-Tones`       | Remove all repo tones     |
+| `-Tone <name>` | Remove a single tone      |
+| `-Hook`        | Remove session-start hook |
 
 ### Other
 
@@ -84,60 +89,102 @@ If you prefer running commands directly, like a peasant:
 |---------------|----------------------------------|
 | `make list`   | Show all tones and their status  |
 | `make status` | Show current installation status |
-| `make update` | Pull latest and show what's new  |
 
-## Example: Gordon Ramsay Tone
+To update, pull the latest changes and re-install:
 
-> **User:** Write me a Python CLI script that takes a directory path and prints a tree view of files and folders
+```bash
+git pull && make install-all
+```
 
-> THERE! LOOK AT THAT! **BEAUTIFUL!** A clean, professional Python script that actually WORKS!
+## Examples
+
+**Gordon Ramsay** (`/tone gordon-ramsay`):
+
+> BLOODY HELL! You're passing an EMPTY LIST to that function! `len(numbers)` is ZERO, you DONKEY! Division by zero! **IT'S RAW!**
 >
 > ```python
-> def print_tree(directory: Path, prefix: str = "", is_last: bool = True) -> None:
->     connector = "└── " if is_last else "├── "
->     print(f"{prefix}{connector}{directory.name}/")
->     prefix += "    " if is_last else "│   "
->
->     try:
->         entries = sorted(directory.iterdir(), key=lambda x: (not x.is_dir(), x.name))
->     except PermissionError:
->         print(f"{prefix}[Permission Denied]")
->         return
->
->     for index, entry in enumerate(entries):
->         is_last_entry = index == len(entries) - 1
->         connector = "└── " if is_last_entry else "├── "
->         if entry.is_dir():
->             print_tree(entry, prefix, is_last_entry)
->         else:
->             print(f"{prefix}{connector}{entry.name}")
+> def average(numbers):
+>     if not numbers:
+>         return 0
+>     total = sum(numbers)
+>     return total / len(numbers)
 > ```
 >
-> See what I did here, you DONKEY? Proper error handling for missing directories and permissions! Sorted output with directories FIRST! Clean recursion with proper Unicode box-drawing characters!
+> THERE! Was that so hard?! Now GET OUT OF MY KITCHEN!
+
+**Kawaii** (`/tone kawaii`):
+
+> Uwaa~! Found it, senpai! (ﾉ◕ヮ◕)ﾉ\*:･ﾟ✧ The empty list makes it do division by zero — not kawaii at all, desu! Let me fix it with super cute error handling magic~ ✨
 >
-> The code uses `pathlib` because we're not SAVAGES using string concatenation like it's 1995! NOW GET OUT OF MY KITCHEN!
+> ```python
+> def average(numbers):
+>     if not numbers:
+>         return 0
+>     total = sum(numbers)
+>     return total / len(numbers)
+> ```
+>
+> Yatta~! Now it's safe and adorable! (◕‿◕)♡
 
 ## How It Works
 
 Claude Companions uses Claude Code's **hooks** system to inject a random tone at the start of each session:
 
-1. **Tones** are markdown files that shape how Claude talks. When installed, they are symlinked to `~/.claude/tones/`.
+1. **Tones** are markdown files that shape how Claude talks. When installed, they are copied to `~/.claude/tones/`.
 2. **The hook** runs a rotation script at session start. It picks a random tone and injects it into Claude's context.
 3. **Skills** let you interact with tones mid-session:
    - `/tone` — switch to a different tone, pick a random one, or list available tones
    - `/create-tone` — create a brand new custom tone
 
-Tones are installed as symlinks back to this repo, so pulling updates automatically refreshes your tones. Custom tones you create via `/create-tone` live directly in `~/.claude/tones/` and are unaffected by uninstall.
+Custom tones you create via `/create-tone` live directly in `~/.claude/tones/` alongside installed tones. To get updated tones after pulling the repo, re-run the install.
 
-## Creating Custom Tones
+## Skills
 
-Use the `/create-tone` skill inside Claude Code:
+Two optional skills give you control over tones mid-session.
+
+### `/tone` — Switch, List, or Randomize Tones
+
+| Usage                 | Description                        |
+|-----------------------|------------------------------------|
+| `/tone`               | List all available tones           |
+| `/tone random`        | Pick a random tone for the session |
+| `/tone gordon-ramsay` | Switch to a specific tone          |
+
+If the tone name isn't found, Claude will suggest the closest match or offer to create it.
 
 ```
-/create-tone pirate-captain
+> /tone random
+🎭 Tone loaded: shakespeare
+
+Hark! What task doth thou bring before me this fine session?
+
+> /tone kawaii
+🎭 Tone loaded: kawaii
+
+Uwaa~! Ready to help, senpai! (◕‿◕)♡
 ```
 
-Or ask Claude directly:
+### `/create-tone` — Create a Custom Tone
+
+Generate a new tone from a name and optional description.
+
+| Usage                                                                    | Description                                |
+|--------------------------------------------------------------------------|--------------------------------------------|
+| `/create-tone pirate-captain`                                            | Generate a tone from the name alone        |
+| `/create-tone surfer-dude laid back California surfer who says "gnarly"` | Use a description for guidance             |
+| `/create-tone give me 10 South Park characters to choose from`           | Ask for a list of suggestions to pick from |
+
+The generated tone is saved to `~/.claude/tones/<name>.md` and you'll be asked if you want to switch to it immediately.
+
+```
+> /create-tone medieval-peasant
+
+🎭 Created tone: medieval-peasant
+Preview: "Oi, milord! This 'ere function be rotten as a turnip..."
+Want to switch to this tone now?
+```
+
+You can also ask Claude directly without the slash command:
 
 ```
 claude "Create a new tone called surfer-dude that talks like a California surfer"
