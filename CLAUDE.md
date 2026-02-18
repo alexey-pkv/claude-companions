@@ -1,4 +1,4 @@
-# Claude Tones — Installation Guide
+# Claude Companions — Installation Guide
 
 This repo contains a library of communication tones for Claude Code. When a user asks to install, set up, or configure tones, follow this guide.
 
