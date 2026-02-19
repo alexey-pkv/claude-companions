@@ -8,6 +8,38 @@ Do you need someone to tell you the honest truth: **your code is sh\*t** — but
 
 > **⚠️ Tones only affect how Claude communicates with you.** Code quality, commit messages, technical decisions, and all professional output remain completely unaffected. You still get principal-engineer-grade work — it's just delivered by a pirate. Or a drill sergeant. Or Edgar Allan Poe.
 
+
+## Examples
+
+**Gordon Ramsay** (`/tone gordon-ramsay`):
+
+> BLOODY HELL! You're passing an EMPTY LIST to that function! `len(numbers)` is ZERO, you DONKEY! Division by zero! **IT'S RAW!**
+>
+> ```python
+> def average(numbers):
+>     if not numbers:
+>         return 0
+>     total = sum(numbers)
+>     return total / len(numbers)
+> ```
+>
+> THERE! Was that so hard?! Now GET OUT OF MY KITCHEN!
+
+**Kawaii** (`/tone kawaii`):
+
+> Uwaa~! Found it, senpai! (ﾉ◕ヮ◕)ﾉ\*:･ﾟ✧ The empty list makes it do division by zero — not kawaii at all, desu! Let me fix it with super cute error handling magic~ ✨
+>
+> ```python
+> def average(numbers):
+>     if not numbers:
+>         return 0
+>     total = sum(numbers)
+>     return total / len(numbers)
+> ```
+>
+> Yatta~! Now it's safe and adorable! (◕‿◕)♡
+
+
 ## Quick Start
 
 ```bash
@@ -17,6 +49,7 @@ claude "Install everything!"
 ```
 
 That's it. Claude reads the `CLAUDE.md` in this repo and knows how to install everything.
+
 
 ## Using with Claude
 
@@ -30,6 +63,7 @@ claude "Create a new tone called pirate-captain"
 ```
 
 No need to memorize commands — just tell Claude what you want.
+
 
 ## Make Commands
 
@@ -96,35 +130,6 @@ To update, pull the latest changes and re-install:
 git pull && make install-all
 ```
 
-## Examples
-
-**Gordon Ramsay** (`/tone gordon-ramsay`):
-
-> BLOODY HELL! You're passing an EMPTY LIST to that function! `len(numbers)` is ZERO, you DONKEY! Division by zero! **IT'S RAW!**
->
-> ```python
-> def average(numbers):
->     if not numbers:
->         return 0
->     total = sum(numbers)
->     return total / len(numbers)
-> ```
->
-> THERE! Was that so hard?! Now GET OUT OF MY KITCHEN!
-
-**Kawaii** (`/tone kawaii`):
-
-> Uwaa~! Found it, senpai! (ﾉ◕ヮ◕)ﾉ\*:･ﾟ✧ The empty list makes it do division by zero — not kawaii at all, desu! Let me fix it with super cute error handling magic~ ✨
->
-> ```python
-> def average(numbers):
->     if not numbers:
->         return 0
->     total = sum(numbers)
->     return total / len(numbers)
-> ```
->
-> Yatta~! Now it's safe and adorable! (◕‿◕)♡
 
 ## How It Works
 
@@ -137,6 +142,7 @@ Claude Companions uses Claude Code's **hooks** system to inject a random tone at
    - `/create-tone` — create a brand new custom tone
 
 Custom tones you create via `/create-tone` live directly in `~/.claude/tones/` alongside installed tones. To get updated tones after pulling the repo, re-run the install.
+
 
 ## Skills
 
@@ -189,6 +195,7 @@ You can also ask Claude directly without the slash command:
 ```
 claude "Create a new tone called surfer-dude that talks like a California surfer"
 ```
+
 
 ## License
 
